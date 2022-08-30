@@ -14,18 +14,28 @@ open_url = "http://local.adspower.com:50325/api/v1/browser/start?open_tabs=1&use
 activt_url = "http://local.adspower.com:50325/api/v1/browser/active?user_id="
 close_url = "http://local.adspower.com:50325/api/v1/browser/stop?user_id="
 
+class discordError(Exception):
+    def __init__(self, msg):
+        '''
+        :param msg: 异常信息
+        '''
+        self.msg = msg
 
 class discordMain:
   
   #加入discord
   @classmethod
   def discordJoinMain(self, ads_id: string, quit: Boolean,driver):
-      
      var=Common.check_element_exists(By.XPATH,"//button/div",driver)
+     a=0
      while var==False:
+         if(a>1):
+             raise discordError("代理异常，discord无法打开")
+         a=a+1
          driver.refresh()
-         sleep(5)
+         sleep(2)
          var=Common.check_element_exists(By.XPATH,"//button/div",driver)
+         
       
      #检查是否已已进入
      valEle = Common.AutoGetElementWithRefresh(
@@ -38,9 +48,7 @@ class discordMain:
          sleep(5)
      else:
          print("下一个")
-         
-     if(quit):
-      requests.get(close_url+ads_id)
+
 
   
 

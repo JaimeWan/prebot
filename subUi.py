@@ -23,7 +23,7 @@ import time
 
 from globalvar import *
 
-threadNum = 1
+threadNum = 2
 
 
 # logger.add(".log/subUi.log", format="{time} | {level} | {name} | {message}", level="DEBUG",
@@ -214,19 +214,20 @@ class subUi(Ui_MainWindow, QMainWindow):
 
     def premintLottery(self, ads_id: string, id: string,  taskList: List,quit:Boolean):
         logger.debug("序号："+id+",开始任务")
-        exception_data.clear()
-        try:
-              premintMain.premintLottery(ads_id, id, taskList, quit)
-        except Exception as e:
-               logger.error("序号："+id+",任务异常")
-            #    logger.exception(e)
-               exception_data.append({"id": id, "ads_id":ads_id})
+        
+        premintMain.premintLottery(ads_id, id, taskList, quit)
+        # try:
+        #       premintMain.premintLottery(ads_id, id, taskList, quit)
+        # except Exception as e:
+        #        logger.error("序号："+id+",任务异常")
+        #        logger.exception(e)
+        #        exception_data.append({"id": id, "ads_id":ads_id})
                
           
     #premint任务执行
     def premintTask(self):
        logger.debug("premint任务执行开始")
-       
+       exception_data.clear()
        table_d = self.getWidgetData()
        
        x = len(table_d)//threadNum
@@ -266,22 +267,23 @@ class subUi(Ui_MainWindow, QMainWindow):
        ws.write(0,3,"链接")
        ws.write(0,4,"错误类型")
        for i in range(0,len(exception_data)):
+        
           ws.write(i+1,0,exception_data[i].id)
           ws.write(i+1,1,exception_data[i].ads_id) 
           ws.write(i+1,2,exception_data[i].address) 
           ws.write(i+1,3,exception_data[i].link)
           ws.write(i+1,4,exception_data[i].type)
+          
        
        timestamp=datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d %H%M%S')
        xl.save('任务异常记录{}.xls'.format(timestamp))
-       logger.error(json.dumps(exception_data))
+    
        
     #任务情况检查
     def premintCheck(self):
        table_d = self.getWidgetData()
        result=[]
        for i in range(0,len(table_d)):
-        print(table_d[i].id)
         temp=premintMain.premintRegisterCheck(ads_id=table_d[i].ads_id,id=table_d[i].id,links=premint_task_data,address=table_d[i].address)
         result.extend(temp)                    
        

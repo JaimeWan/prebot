@@ -9,7 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 import sys
-from taskUtils.discord_main import discordMain
+from taskUtils.discord_main import discordMain,discordError
 from taskUtils.twitter_main import twitterError, twitterMain
 from util.commonUtil import Common
 from selenium.webdriver.common.by import *
@@ -20,12 +20,13 @@ from globalvar import exception_data
 
 
 
+
 # logger.add(".log/premintMain.log", format="{time} | {level} | {name} | {message}", level="DEBUG",
 #            rotation="1 KB", encoding="utf-8",enqueue=True, backtrace=True, diagnose=True)
 
 
 
-open_url = "http://local.adspower.com:50325/api/v1/browser/start?open_tabs=1&headless=0&user_id="
+open_url = "http://local.adspower.com:50325/api/v1/browser/start?open_tabs=1&headless=1&user_id="
 activt_url = "http://local.adspower.com:50325/api/v1/browser/active?user_id="
 close_url = "http://local.adspower.com:50325/api/v1/browser/stop?user_id="
 
@@ -283,20 +284,44 @@ class premintMain:
          "debuggerAddress", resp["data"]["ws"]["selenium"])
      
      driver = webdriver.Chrome(chrome_driver, options=chrome_options)
-     driver.set_page_load_timeout(20)
-     driver.set_script_timeout(20)
+     driver.set_page_load_timeout(40)
+     driver.set_script_timeout(40)
      #打开并解锁metamask
      self.openMetamask(driver)
 
      #https://www.premint.xyz/profile/
      #打开premint
+     
      for i in range(0,len(taskList)):
-      driver.switch_to.window(driver.window_handles[0])
       try:
+          driver.switch_to.window(driver.window_handles[0])
           self.premintLotteryWarpe(ads_id,id,taskList[i].link,taskList[i].register,quit,driver)
+      except twitterError as e:
+          logger.error("序号："+id+"推特异常，页面无法打开")
+          exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=e.msg))
+          if(quit):
+               Common.closeAds(ads_id)
+          return
+      except discordError as e:
+          logger.error("序号："+id+"discord异常,页面无法打开")
+          exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=e.msg))
+          while (len(driver.window_handles)>1):
+              print("窗口数")
+              print(len(driver.window_handles))
+              driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
+              driver.close()
+          driver.switch_to.window(driver.window_handles[0])
+          return
       except Exception as e:
-          requests.get(close_url+ads_id)
-          exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=e.__traceback__))
+        #   requests.get(close_url+ads_id)
+          logger.exception(e)
+          exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=""))
+          while (len(driver.window_handles)>1):
+              print("剩余窗口数："+str(driver.window_handles))
+              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
+              driver.close()
+          driver.switch_to.window(driver.window_handles[0])
           
      if(quit):
        Common.closeAds(ads_id)
@@ -305,19 +330,15 @@ class premintMain:
   def premintLotteryWarpe(self, ads_id: string,id: string, link: string, register: Boolean, quit: Boolean,driver):
       try:
         self.premintLotteryMain(ads_id,id,link,register,quit,driver)
+        
       except TimeoutException  as t:
         logger.error("序号："+id+"任务页面开启缓慢异常。任务："+link)
         while (len(driver.window_handles)>1):
-           print("窗口数")
-           print(len(driver.window_handles))
-           driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
-           driver.close()
+              print("剩余窗口数："+str(driver.window_handles))
+              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
+              driver.close()
         exception_data.append(exceptionData(id=id,ads_id=ads_id,link=link,address="",type="任务页面开启缓慢异常。任务："+link))
-         
-      except Exception as e:
-       logger.exception(e)
-       logger.error("序号："+id+"任务异常。任务："+link)
-       raise e
        #关闭其他页面 并重新执行该方法
     #    while (len(driver.window_handles)>1):
     #        print("窗口数")
@@ -335,7 +356,8 @@ class premintMain:
      try:
       driver.execute_script(temp) 
      except:
-      driver.execute_script("window.stop()")    
+      driver.execute_script("window.stop()")  
+        
      driver.switch_to.window(driver.window_handles[1])
      #查询是否正确打开页面
      Common.checkAndExceptein(By.XPATH,"//img[@alt='PREMINT']",driver)
@@ -387,20 +409,10 @@ class premintMain:
          
          driver.switch_to.window(
              driver.window_handles[len(driver.window_handles)-1])
-         try:
+         
          #开始关注
-          twitterMain.twitterFollowMain(ads_id, False, driver)
-         except twitterError as e:
-           logger.error("序号："+id+"推特异常，页面无法打开")
-           if(quit):
-             driver.close()
-             if(len(driver.window_handles)>1):
-              driver.window_handles[len(driver.window_handles)-1]
-              driver.close()
-             logger.error(e)
-             logger.error("序号："+id+"推特异常，页面无法打开")
-             exception_data.append(exceptionData(id=id,ads_id=ads_id,link=link,address="",type="推特页面无法打开"))
-             return
+         twitterMain.twitterFollowMain(ads_id, False, driver)
+       
              
          driver.close()
          driver.switch_to.window(driver.window_handles[0])
@@ -418,19 +430,7 @@ class premintMain:
              driver.window_handles[len(driver.window_handles)-1])
          #开始like&Retweet
          logger.debug("序号："+id+"开始like&Retweet")
-         try:
-          twitterMain.twitterLikeMain(ads_id, False, driver)
-         except twitterError as e:
-           logger.error("序号："+id+"推特异常，页面无法打开")
-           if(quit):
-             driver.close()
-             if(len(driver.window_handles)>1):
-              driver.window_handles[len(driver.window_handles)-1]
-              driver.close()
-             logger.error(e)
-             logger.error("序号："+id+"推特异常，页面无法打开")
-             exception_data.append(exceptionData(id=id,ads_id=ads_id,link=link,address="",type="推特页面无法打开"))
-             return 
+         twitterMain.twitterLikeMain(ads_id, False, driver)
          driver.close()
          driver.switch_to.window(driver.window_handles[0])
 
@@ -453,32 +453,35 @@ class premintMain:
          #开始关注
          discordMain.discordJoinMain(ads_id, False, driver)
          driver.close()
-         driver.switch_to.window(driver.window_handles[0])
-     
-             
+         
+     driver.switch_to.window(
+             driver.window_handles[len(driver.window_handles)-1])    
      if(register == "是" ):
          logger.info("序号："+id+":开始点击注册")
-         driver.switch_to.window(
-             driver.window_handles[len(driver.window_handles)-1])
          valRe=Common.check_element_exists(By.XPATH,"//*[@id='registration_status']/div/a",driver,2,1)
+         print("valRe="+str(valRe))
          if(valRe==False):
+          driver.refresh()
+          logger.info("序号："+id+":开始点击注册2")
           Common.AutoClickWithRefresh(By.XPATH, "//button[@type='submit']", driver)
-          logger.info("序号："+id+":点击注册完成")
           sleep(5)
-     
-     driver.switch_to.window(
-             driver.window_handles[len(driver.window_handles)-1])     
-     valFinish=Common.check_element_exists(By.XPATH,"//a[text()=' Unregister']",driver,2,1)
-     if(valFinish==False):
-         logger.error("序号："+id+":注册失败，重试")
-         self.premintLotteryMain(ads_id,id,link,register,quit,driver)
-         valFinish=True
+          driver.refresh()
+          valFinish=Common.check_element_exists(By.XPATH,"//a[text()=' Unregister']",driver,10,1)
+          print("valFinish="+str(valFinish))
+          if(valFinish==False):
+              logger.error("序号："+id+":注册失败，重试")
+              self.premintLotteryMain(ads_id,id,link,register,quit,driver)
+            #   valFinish=True
+
+             
      
      logger.info("序号："+id+":已完成注册")
-     if(quit&valFinish):
-      driver.close()
-      
-      
+     if(quit):
+        while (len(driver.window_handles)>1):
+              print("剩余窗口数："+str(driver.window_handles))
+              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
+              driver.close()
       
   @classmethod
   def premintRegisterCheck(self,ads_id: string,id: string, links: List,address:string):
@@ -535,13 +538,4 @@ class premintMain:
    
    
 # premintMain.premintRegisterCheck("j3byl5s","158","https://www.premint.xyz/hhwl/","0x8d98cf8962ec37d77ab91aea9d353bd96870cd0a",False)
-# premintMain.premintLottery("j3byl5s","158","",False)
-# premintMain.premintLottery("j3byl5t","159","",False)
-# premintMain.premintLottery("j3byl5u","160","",False)
-# premintMain.premintLottery("j3byl5v","161","",True)
-# premintMain.premintLottery("j3byl5w","162","",True)
-# premintMain.premintLottery("j3byl5x","163","",True)
-# premintMain.premintLottery("j3byl5y","164","",True)
-# premintMain.premintLottery("j3byl60","165","",True)
-# premintMain.premintLottery("j3byl61","166","",True)
-# premintMain.premintLottery("j3byl62","167","",True)
+

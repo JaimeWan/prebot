@@ -31,7 +31,7 @@ class twitterMain:
   def twitterFollowMain(self, ads_id: string, quit: Boolean, driver):
       
       valOpen2 = Common.check_element_exists(
-            By.XPATH, "//div[contains(text(),'推文') or contains(text(),'Tweets')]", driver,2,0.5)
+            By.XPATH, "//div[contains(text(),'推文') or contains(text(),'Tweets')]", driver,5,0.5)
       if(valOpen2==False):
           raise twitterError("代理异常，推特无法打开")
       #检查是否已完成 已完成则退出
