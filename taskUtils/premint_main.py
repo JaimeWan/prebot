@@ -261,7 +261,7 @@ class premintMain:
      #输入密码
      # //*[@id="password"]
     #  val=Common.check_element_exists(By.XPATH, "//*[@id=\"password\"]", driver)
-    #  print(val)
+    #  logger.info(val)
     #  Common.AutoInput(By.XPATH, "//*[@id=\"password\"]", "w7217459", driver)
      #点击Unlock
      # //*[@id="app-content"]/div/div[3]/div/div/button
@@ -279,7 +279,7 @@ class premintMain:
 
      chrome_driver = resp["data"]["webdriver"]
      chrome_options = Options()
-     print( resp["data"]["ws"]["selenium"])
+     logger.info( resp["data"]["ws"]["selenium"])
      chrome_options.add_experimental_option(
          "debuggerAddress", resp["data"]["ws"]["selenium"])
      
@@ -306,8 +306,8 @@ class premintMain:
           logger.error("序号："+id+"discord异常,页面无法打开")
           exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=e.msg))
           while (len(driver.window_handles)>1):
-              print("窗口数")
-              print(len(driver.window_handles))
+              logger.info("窗口数")
+              logger.info(len(driver.window_handles))
               driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
               driver.close()
           driver.switch_to.window(driver.window_handles[0])
@@ -317,8 +317,8 @@ class premintMain:
           logger.exception(e)
           exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=""))
           while (len(driver.window_handles)>1):
-              print("剩余窗口数："+str(driver.window_handles))
-              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              logger.info("剩余窗口数："+str(driver.window_handles))
+              logger.info("关闭：窗口"+str(len(driver.window_handles)-1))
               driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
               driver.close()
           driver.switch_to.window(driver.window_handles[0])
@@ -334,15 +334,15 @@ class premintMain:
       except TimeoutException  as t:
         logger.error("序号："+id+"任务页面开启缓慢异常。任务："+link)
         while (len(driver.window_handles)>1):
-              print("剩余窗口数："+str(driver.window_handles))
-              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              logger.info("剩余窗口数："+str(driver.window_handles))
+              logger.info("关闭：窗口"+str(len(driver.window_handles)-1))
               driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
               driver.close()
         exception_data.append(exceptionData(id=id,ads_id=ads_id,link=link,address="",type="任务页面开启缓慢异常。任务："+link))
        #关闭其他页面 并重新执行该方法
     #    while (len(driver.window_handles)>1):
-    #        print("窗口数")
-    #        print(len(driver.window_handles))
+    #        logger.info("窗口数")
+    #        logger.info(len(driver.window_handles))
     #        driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
     #        driver.close()
     #    driver.switch_to.window(driver.window_handles[0])
@@ -459,7 +459,7 @@ class premintMain:
      if(register == "是" ):
          logger.info("序号："+id+":开始点击注册")
          valRe=Common.check_element_exists(By.XPATH,"//*[@id='registration_status']/div/a",driver,2,1)
-         print("valRe="+str(valRe))
+         logger.info("valRe="+str(valRe))
          if(valRe==False):
           driver.refresh()
           logger.info("序号："+id+":开始点击注册2")
@@ -467,7 +467,7 @@ class premintMain:
           sleep(5)
           driver.refresh()
           valFinish=Common.check_element_exists(By.XPATH,"//a[text()=' Unregister']",driver,10,1)
-          print("valFinish="+str(valFinish))
+          logger.info("valFinish="+str(valFinish))
           if(valFinish==False):
               logger.error("序号："+id+":注册失败，重试")
               self.premintLotteryMain(ads_id,id,link,register,quit,driver)
@@ -478,8 +478,8 @@ class premintMain:
      logger.info("序号："+id+":已完成注册")
      if(quit):
         while (len(driver.window_handles)>1):
-              print("剩余窗口数："+str(driver.window_handles))
-              print("关闭：窗口"+str(len(driver.window_handles)-1))
+              logger.info("剩余窗口数："+str(driver.window_handles))
+              logger.info("关闭：窗口"+str(len(driver.window_handles)-1))
               driver.switch_to.window(driver.window_handles[len(driver.window_handles)-1])
               driver.close()
       
@@ -508,16 +508,16 @@ class premintMain:
       resultType="未知"
       if("You aren't registered." in resp.text):
         resultType="未注册"
-        print("未注册")
+        logger.info("未注册")
       if("You are registered." in resp.text):
         resultType="已注册"
-        print("已注册")
+        logger.info("已注册")
       if("You were selected!" in resp.text):
         resultType="已中奖"
-        print("已中奖")  
+        logger.info("已中奖")  
       if("You were not selected!" in resp.text):
         resultType="未中奖"
-        print("未中奖")
+        logger.info("未中奖")
       result.append(premintRegisterCheck(id=id,ads_id=ads_id,link=links[i].link,address=address,type=resultType))
       sleep(1)
      return result 

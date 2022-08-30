@@ -1,5 +1,6 @@
 
 
+from asyncio.log import logger
 import string
 from xmlrpc.client import Boolean
 import requests
@@ -10,7 +11,7 @@ import sys
 from util.commonUtil import Common
 from selenium.webdriver.common.by import *
 from time import sleep
-import logging
+import loguru
 
 open_url = "http://local.adspower.com:50325/api/v1/browser/start?open_tabs=1&user_id="
 activt_url = "http://local.adspower.com:50325/api/v1/browser/active?user_id="
@@ -24,8 +25,8 @@ class layoutMain:
   
      resp = requests.get(open_url+ads_id).json()
      if resp["code"] != 0:
-         logging.info(resp["msg"])
-         logging.info("please check ads_id")
+         logger.info(resp["msg"])
+         logger.info("please check ads_id")
          sys.exit()
   
      chrome_driver = resp["data"]["webdriver"]
@@ -60,7 +61,7 @@ class layoutMain:
      #登出
      Common.AutoClick(By.XPATH,"//*[@id=\"navbar_main\"]/ul[2]/li[2]/div/a[3]",driver)
      
-     logging.info(id+"discored解绑premint完成")
+     logger.info(id+"discored解绑premint完成")
      if(quit):
       requests.get(close_url+ads_id)
 
@@ -74,7 +75,7 @@ class layoutMain:
       val = Common.check_element_exists(
           By.XPATH, "//*[@id=\"navbarAccount\"]", driver)
       if(val == False):
-       logging.info("登录检查不通过")
+       logger.info("登录检查不通过")
       return val
 
   @classmethod
@@ -82,8 +83,8 @@ class layoutMain:
  
      resp = requests.get(open_url+ads_id).json()
      if resp["code"] != 0:
-         logging.info(resp["msg"])
-         logging.info("please check ads_id")
+         logger.info(resp["msg"])
+         logger.info("please check ads_id")
          sys.exit()
   
      chrome_driver = resp["data"]["webdriver"]
@@ -97,7 +98,7 @@ class layoutMain:
      #打开premint
     #  driver.execute_script("window.open('https://www.premint.xyz/profile/')")
      driver.get("chrome://settings/content/popups")  
-     print(Common.check_element_exists(By.XPATH,"//*[@id='button']",driver))
+     logger.info(Common.check_element_exists(By.XPATH,"//*[@id='button']",driver))
      
      
      
@@ -106,8 +107,8 @@ class layoutMain:
  
      resp = requests.get(open_url+ads_id).json()
      if resp["code"] != 0:
-         logging.info(resp["msg"])
-         logging.info("please check ads_id")
+         logger.info(resp["msg"])
+         logger.info("please check ads_id")
          sys.exit()
   
      chrome_driver = resp["data"]["webdriver"]
@@ -127,7 +128,7 @@ class layoutMain:
       driver.execute_script(temp) 
      except:
       driver.execute_script("window.stop()")   
-     print("测试完成")  
+     logger.info("测试完成")  
 
 layoutMain.test("j3byfbe","125",False)  
 # layoutMain.layout("j3byfaj","95",False)
