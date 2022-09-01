@@ -13,6 +13,7 @@ import xlrd
 from taskUtils.metamask_main import metamaskMain    
 from taskUtils.twitter_main import twitterMain
 from taskUtils.premint_main import premintMain
+from util.commonUtil import Common
 from widgetModel import *
 import threading
 from loguru import logger
@@ -23,7 +24,7 @@ import time
 
 from globalvar import *
 
-threadNum = 2
+threadNum = 1
 
 
 # logger.add(".log/subUi.log", format="{time} | {level} | {name} | {message}", level="DEBUG",
@@ -135,7 +136,7 @@ class subUi(Ui_MainWindow, QMainWindow):
             excel = xlrd.open_workbook(filename)
             sheet = excel.sheet_by_index(0)
             
-            twitter_task_data = []
+            twitter_task_data.clear()
             #导入数据
             for i in range(1, sheet.nrows):
              row_list = sheet.row_values(i)
@@ -146,9 +147,10 @@ class subUi(Ui_MainWindow, QMainWindow):
               
               type = row_list[1]
               
-              content = row_list[2]
+              content = ""
               
               twitter_task_data.append(twitterTask(link, type, content))
+              logger.info(len(twitter_task_data))
               logger.info(row_list[0])
               logger.info(row_list[1])
              else:
@@ -173,15 +175,12 @@ class subUi(Ui_MainWindow, QMainWindow):
        table_d = self.getWidgetData()
        
        for t in range(0, len(table_d)):
-           
-         for i in range(0, len(twitter_task_data)):
              try:
               logger.info(table_d[t].ads_id+":开始任务")
-              logger.info(type(twitter_task_data[i].type))
-              twitterMain.twitterTaskMain(table_d[t].ads_id, twitter_task_data[i].link,
-                                          twitter_task_data[i].type, twitter_task_data[i].content, True)
+              twitterMain.twitterTaskMain(table_d[t].ads_id, twitter_task_data, True)
+              Common.closeAds(table_d[t].ads_id)
              except Exception as e:
-                logger.info("id:"+table_d[i].id+"任务异常")
+                logger.info("id:"+table_d[t].id+"任务异常")
                 logger.info(e)
     
     #premint任务数据导入
@@ -305,4 +304,4 @@ class subUi(Ui_MainWindow, QMainWindow):
        timestamp=datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d %H%M%S')
        xl.save('测试{}.xls'.format(timestamp))
        logger.info("任务检查完成")
-# premintMain.premintRegisterCheck("j3byl5s","158","https://www.premint.xyz/hhwl/","0x8d98cf8962ec37d77ab91aea9d353bd96870cd0a")                 
+   

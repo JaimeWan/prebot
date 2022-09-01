@@ -41,10 +41,14 @@ class discordMain:
      valEle = Common.AutoGetElementWithRefresh(
          By.XPATH, "//button/div", driver)
      print("开始进入discord")
-     print(valEle.text)
      if(valEle.text=="接受邀请"):
          Common.AutoClickWithRefresh(
              By.XPATH, "//button/div", driver)
+         
+         val=Common.check_element_exists(By.XPATH,"//h1[text()='等一下！您是人类吗？']",driver)
+         if(val):
+             driver.close()
+             raise discordError("discord进入 验证码弹出，跳过")
          sleep(5)
      else:
          print("下一个")

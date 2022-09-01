@@ -303,7 +303,7 @@ class premintMain:
                Common.closeAds(ads_id)
           return
       except discordError as e:
-          logger.error("序号："+id+"discord异常,页面无法打开")
+          logger.error(e.msg)
           exception_data.append(exceptionData(id=id,ads_id=ads_id,link=taskList[i].link,address='',type=e.msg))
           while (len(driver.window_handles)>1):
               logger.info("窗口数")
@@ -518,24 +518,13 @@ class premintMain:
       if("You were not selected!" in resp.text):
         resultType="未中奖"
         logger.info("未中奖")
+      if("You did not win the raffle." in resp.text):
+        resultType="未中奖"
+        logger.info("未中奖")  
       result.append(premintRegisterCheck(id=id,ads_id=ads_id,link=links[i].link,address=address,type=resultType))
       sleep(1)
      return result 
        
        
      
-     
-     
-     
-    #  valReFinished=Common.check_element_exists(By.XPATH,"//a[text()=' Unregister']",driver)
-     
-    #  if(valReFinished):
-    #    logger.debug("序号：{}，{}已注册，".format(id,link))
-    #    driver.close()
-    #    return premintRegisterCheck(id,ads_id,link,"已注册未开奖")
-    #  else:
-    #    logger.debug("序号：{}，{}未注册完成，请检查".format(id,link))
-   
-   
-# premintMain.premintRegisterCheck("j3byl5s","158","https://www.premint.xyz/hhwl/","0x8d98cf8962ec37d77ab91aea9d353bd96870cd0a",False)
 
